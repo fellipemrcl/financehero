@@ -169,9 +169,9 @@ export default function Home() {
                     transition={{ delay: 0.5 }}
                     className="flex gap-4"
                   >
-                    <Button variant="outline" className="flex-1">
+                    <Button variant="outline" className="flex-1" onClick={() => window.location.href = '/admin'}>
                       <BarChart3 className="h-4 w-4 mr-2" />
-                      Ver Relatórios
+                      Administração
                     </Button>
                     <Button variant="outline" className="flex-1">
                       <Target className="h-4 w-4 mr-2" />
