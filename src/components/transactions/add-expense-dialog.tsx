@@ -4,9 +4,10 @@ import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { CalendarIcon, Plus } from "lucide-react"
+import { CalendarIcon, Plus, DollarSign, FileText } from "lucide-react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { motion, AnimatePresence } from "framer-motion"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -198,10 +199,12 @@ export function AddExpenseDialog({ onSuccess, trigger }: AddExpenseDialogProps) 
   }
 
   const defaultTrigger = (
-    <Button size="lg" className="w-full sm:w-auto">
-      <Plus className="h-4 w-4 mr-2" />
-      Adicionar Novo Gasto
-    </Button>
+    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+      <Button size="lg" className="w-full sm:w-auto group">
+        <Plus className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform duration-200" />
+        Adicionar Novo Gasto
+      </Button>
+    </motion.div>
   )
 
   return (
@@ -210,42 +213,77 @@ export function AddExpenseDialog({ onSuccess, trigger }: AddExpenseDialogProps) 
         {trigger || defaultTrigger}
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Adicionar Novo Gasto</DialogTitle>
-          <DialogDescription>
-            Registre um novo gasto em suas finanças pessoais
-          </DialogDescription>
-        </DialogHeader>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.2 }}
+        >
+          <DialogHeader>
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="flex items-center space-x-2"
+            >
+              <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                <DollarSign className="h-4 w-4 text-primary" />
+              </div>
+              <DialogTitle>Adicionar Novo Gasto</DialogTitle>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <DialogDescription>
+                Registre um novo gasto em suas finanças pessoais
+              </DialogDescription>
+            </motion.div>
+          </DialogHeader>
         
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="amount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Valor *</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
-                          R$
-                        </span>
-                        <Input
-                          {...field}
-                          placeholder="0,00"
-                          className="pl-10"
-                          onChange={(e) => {
-                            const formatted = formatCurrency(e.target.value)
-                            field.onChange(formatted)
-                          }}
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                >
+                  <FormField
+                    control={form.control}
+                    name="amount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center space-x-2">
+                          <DollarSign className="h-4 w-4 text-primary" />
+                          <span>Valor *</span>
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                              R$
+                            </span>
+                            <Input
+                              {...field}
+                              placeholder="0,00"
+                              className="pl-10 focus:ring-2 focus:ring-primary/20 transition-all"
+                              onChange={(e) => {
+                                const formatted = formatCurrency(e.target.value)
+                                field.onChange(formatted)
+                              }}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
               <FormField
                 control={form.control}
@@ -289,26 +327,41 @@ export function AddExpenseDialog({ onSuccess, trigger }: AddExpenseDialogProps) 
                   </FormItem>
                 )}
               />
-            </div>
+                </motion.div>
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descrição *</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="Ex: Almoço no restaurante"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center space-x-2">
+                          <FileText className="h-4 w-4 text-primary" />
+                          <span>Descrição *</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="Ex: Almoço no restaurante"
+                            className="focus:ring-2 focus:ring-primary/20 transition-all"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6 }}
+                  className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                >
               <FormField
                 control={form.control}
                 name="accountId"
@@ -371,22 +424,40 @@ export function AddExpenseDialog({ onSuccess, trigger }: AddExpenseDialogProps) 
                   </FormItem>
                 )}
               />
-            </div>
+                </motion.div>
 
-            <div className="flex gap-3 pt-4">
-              <Button type="submit" disabled={isLoading} className="flex-1">
-                {isLoading ? "Salvando..." : "Adicionar Gasto"}
-              </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => setIsOpen(false)}
-              >
-                Cancelar
-              </Button>
-            </div>
-          </form>
-        </Form>
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.7 }}
+                  className="flex gap-3 pt-4"
+                >
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
+                    <Button type="submit" disabled={isLoading} className="w-full">
+                      {isLoading ? (
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full mr-2"
+                        />
+                      ) : null}
+                      {isLoading ? "Salvando..." : "Adicionar Gasto"}
+                    </Button>
+                  </motion.div>
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Cancelar
+                    </Button>
+                  </motion.div>
+                </motion.div>
+              </form>
+            </Form>
+          </motion.div>
+        </motion.div>
       </DialogContent>
     </Dialog>
   )
