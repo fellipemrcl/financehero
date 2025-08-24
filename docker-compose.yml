@@ -1,0 +1,36 @@
+services:
+  # PostgreSQL Database Service
+  postgres:
+    image: postgres:16-alpine
+    container_name: financehero_postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-financehero}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-financehero_db}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      # Persist PostgreSQL data
+      - postgres_data:/var/lib/postgresql/data
+      # Optional: Add initialization scripts
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
+    networks:
+      - financehero_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-financehero} -d ${POSTGRES_DB:-financehero_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
+# Named volumes for data persistence
+volumes:
+  postgres_data:
+    driver: local
+
+# Custom network for service communication
+networks:
+  financehero_network:
+    driver: bridge
+    name: financehero_network
