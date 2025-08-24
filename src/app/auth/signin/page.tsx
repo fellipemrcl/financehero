@@ -16,7 +16,7 @@ export default function SignIn() {
   const [providers, setProviders] = useState<any>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard"
+  const callbackUrl = searchParams.get("callbackUrl") || "/"
 
   useEffect(() => {
     const getProvidersData = async () => {

@@ -63,7 +63,7 @@ export default function SignUp() {
         if (result?.error) {
           setError("Conta criada, mas erro ao fazer login")
         } else {
-          router.push("/dashboard")
+          router.push("/")
         }
       } else {
         const data = await response.json()
