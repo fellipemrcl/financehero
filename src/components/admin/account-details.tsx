@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { formatAccountBalance, formatDateTime } from "@/lib/format";
 import { 
   CreditCard, 
   DollarSign, 
@@ -84,7 +85,7 @@ export function AccountDetails({ account }: AccountDetailsProps) {
               <p className={`text-2xl font-bold ${
                 Number(account.balance) >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
               }`}>
-                R$ {Number(account.balance).toFixed(2)}
+                {formatAccountBalance(Number(account.balance), account.type)}
               </p>
             </div>
           </div>
@@ -142,7 +143,7 @@ export function AccountDetails({ account }: AccountDetailsProps) {
               <p className={`font-bold ${
                 Number(account.balance) >= 0 ? "text-green-600" : "text-red-600"
               }`}>
-                R$ {Number(account.balance).toFixed(2)}
+                {formatAccountBalance(Number(account.balance), account.type)}
               </p>
             </div>
           </CardContent>
@@ -162,20 +163,14 @@ export function AccountDetails({ account }: AccountDetailsProps) {
             <div>
               <p className="text-sm text-muted-foreground">Criada em</p>
               <p className="text-sm">
-                {new Date(account.createdAt).toLocaleDateString("pt-BR", {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })} às {new Date(account.createdAt).toLocaleTimeString("pt-BR")}
+                {formatDateTime(account.createdAt)}
               </p>
             </div>
 
             <div>
               <p className="text-sm text-muted-foreground">Última atualização</p>
               <p className="text-sm">
-                {new Date(account.updatedAt).toLocaleDateString("pt-BR")} às{" "}
-                {new Date(account.updatedAt).toLocaleTimeString("pt-BR")}
+                {formatDateTime(account.updatedAt)}
               </p>
             </div>
           </div>

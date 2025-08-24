@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { formatTransactionAmount, formatDate, formatDateTime } from "@/lib/format";
 import { 
   Calendar,
   CreditCard, 
@@ -101,7 +102,7 @@ export function TransactionDetails({ transaction }: TransactionDetailsProps) {
                     ? "text-red-600 dark:text-red-400" 
                     : "text-green-600 dark:text-green-400"
                 }`}>
-                  {transaction.type === "EXPENSE" ? "-" : "+"}R$ {Number(transaction.amount).toFixed(2)}
+                  {formatTransactionAmount(transaction.amount, transaction.type)}
                 </p>
               </div>
             </div>
@@ -184,7 +185,7 @@ export function TransactionDetails({ transaction }: TransactionDetailsProps) {
               <div>
                 <p className="text-sm text-muted-foreground">Data da Transação</p>
                 <p className="font-medium">
-                  {new Date(transaction.date).toLocaleDateString("pt-BR", {
+                  {formatDate(transaction.date, {
                     weekday: "long",
                     year: "numeric",
                     month: "long",
@@ -197,16 +198,14 @@ export function TransactionDetails({ transaction }: TransactionDetailsProps) {
             <div>
               <p className="text-sm text-muted-foreground">Criada em</p>
               <p className="text-sm">
-                {new Date(transaction.createdAt).toLocaleDateString("pt-BR")} às{" "}
-                {new Date(transaction.createdAt).toLocaleTimeString("pt-BR")}
+                {formatDateTime(transaction.createdAt)}
               </p>
             </div>
 
             <div>
               <p className="text-sm text-muted-foreground">Última atualização</p>
               <p className="text-sm">
-                {new Date(transaction.updatedAt).toLocaleDateString("pt-BR")} às{" "}
-                {new Date(transaction.updatedAt).toLocaleTimeString("pt-BR")}
+                {formatDateTime(transaction.updatedAt)}
               </p>
             </div>
           </div>

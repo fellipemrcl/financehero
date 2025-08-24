@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { CategoryForm } from "@/components/admin/category-form";
 import { CategoryDetails } from "@/components/admin/category-details";
+import { formatDate } from "@/lib/format";
 
 interface Category {
   id: string;
@@ -230,7 +231,7 @@ export function CategoriesManager() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {new Date(category.createdAt).toLocaleDateString("pt-BR")}
+                        {formatDate(category.createdAt)}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end space-x-2">

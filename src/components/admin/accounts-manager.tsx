@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { AccountForm } from "@/components/admin/account-form";
 import { AccountDetails } from "@/components/admin/account-details";
+import { formatCurrency, formatAccountBalance, formatDate } from "@/lib/format";
 
 interface Account {
   id: string;
@@ -187,7 +188,7 @@ export function AccountsManager() {
             <div className={`text-2xl font-bold ${
               totalBalance >= 0 ? "text-green-600" : "text-red-600"
             }`}>
-              R$ {totalBalance.toFixed(2)}
+              {formatCurrency(totalBalance)}
             </div>
           </CardContent>
         </Card>
@@ -256,7 +257,7 @@ export function AccountsManager() {
                         <span className={`font-semibold ${
                           Number(account.balance) >= 0 ? "text-green-600" : "text-red-600"
                         }`}>
-                          R$ {Number(account.balance).toFixed(2)}
+                          {formatAccountBalance(Number(account.balance), account.type)}
                         </span>
                       </TableCell>
                       <TableCell>
@@ -270,7 +271,7 @@ export function AccountsManager() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {new Date(account.createdAt).toLocaleDateString("pt-BR")}
+                        {formatDate(account.createdAt)}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end space-x-2">

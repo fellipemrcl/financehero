@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { SignOutButton } from "@/components/auth/signout-button";
 import { AddExpenseDialog } from "@/components/transactions/add-expense-dialog";
@@ -18,8 +19,26 @@ import {
   Star,
   Users,
   Award,
-  TrendingDown
+  TrendingDown,
+  Wallet,
+  Calendar,
+  FileText,
+  Settings,
+  Plus,
+  PieChart,
+  LineChart,
+  CreditCard,
+  HomeIcon,
+  ShoppingCart,
+  Utensils,
+  Car,
+  Heart,
+  BookOpen,
+  Gamepad2,
+  Gift,
+  Loader2
 } from "lucide-react";
+import { formatCurrency, formatPercentage, formatDate, formatRelativeTime } from "@/lib/format";
 
 // Animation variants
 const fadeInUp = {
@@ -42,7 +61,7 @@ const scaleIn = {
   transition: { duration: 0.5, ease: "easeOut" }
 };
 
-// Stats and testimonials data
+// Stats and testimonials data (for landing page only)
 const stats = [
   { number: "50K+", label: "Usuários Ativos", icon: Users },
   { number: "R$ 100M+", label: "Economizados", icon: TrendingUp },
@@ -83,8 +102,202 @@ const features = [
   }
 ];
 
+// Quick actions for the dashboard
+const quickActions = [
+  {
+    title: "Adicionar Gasto",
+    description: "Registre uma nova despesa",
+    icon: Plus,
+    action: "add-expense",
+    color: "text-red-500",
+    bgColor: "bg-red-50 dark:bg-red-950"
+  },
+  {
+    title: "Ver Relatórios",
+    description: "Analise seus dados financeiros",
+    icon: BarChart3,
+    action: "reports",
+    color: "text-blue-500",
+    bgColor: "bg-blue-50 dark:bg-blue-950"
+  },
+  {
+    title: "Gerenciar Contas",
+    description: "Configure suas contas bancárias",
+    icon: Wallet,
+    action: "accounts",
+    color: "text-green-500",
+    bgColor: "bg-green-50 dark:bg-green-950"
+  },
+  {
+    title: "Definir Metas",
+    description: "Crie e acompanhe objetivos",
+    icon: Target,
+    action: "goals",
+    color: "text-purple-500",
+    bgColor: "bg-purple-50 dark:bg-purple-950"
+  }
+];
+
+// Common expense categories with icons (fallback)
+const fallbackCategories = [
+  { name: "Moradia", icon: HomeIcon, color: "text-blue-500", bgColor: "bg-blue-100 dark:bg-blue-900" },
+  { name: "Alimentação", icon: Utensils, color: "text-green-500", bgColor: "bg-green-100 dark:bg-green-900" },
+  { name: "Transporte", icon: Car, color: "text-yellow-500", bgColor: "bg-yellow-100 dark:bg-yellow-900" },
+  { name: "Saúde", icon: Heart, color: "text-red-500", bgColor: "bg-red-100 dark:bg-red-900" },
+  { name: "Educação", icon: BookOpen, color: "text-purple-500", bgColor: "bg-purple-100 dark:bg-purple-900" },
+  { name: "Entretenimento", icon: Gamepad2, color: "text-pink-500", bgColor: "bg-pink-100 dark:bg-pink-900" },
+  { name: "Compras", icon: ShoppingCart, color: "text-indigo-500", bgColor: "bg-indigo-100 dark:bg-indigo-900" },
+  { name: "Presentes", icon: Gift, color: "text-orange-500", bgColor: "bg-orange-100 dark:bg-orange-900" }
+];
+
+// Types for dashboard data
+interface DashboardData {
+  totalBalance: number;
+  currentMonth: {
+    expenses: number;
+    income: number;
+    savings: number;
+    savingsPercentage: number;
+  };
+  previousMonth: {
+    expenses: number;
+    income: number;
+  };
+  changes: {
+    expenses: number;
+    income: number;
+  };
+  recentTransactions: Array<{
+    id: string;
+    amount: number;
+    description: string;
+    date: string;
+    type: string;
+    account: {
+      id: string;
+      name: string;
+    };
+    category: {
+      id: string;
+      name: string;
+      color: string;
+      icon: string;
+    };
+  }>;
+  categoryStats: Array<{
+    id: string;
+    name: string;
+    color: string;
+    icon: string;
+    expenses: number;
+    income: number;
+    count: number;
+  }>;
+  accountStats: Array<{
+    id: string;
+    name: string;
+    balance: number;
+    transactionCount: number;
+  }>;
+  period: {
+    start: string;
+    end: string;
+  };
+}
+
+interface Goal {
+  id: string;
+  name: string;
+  targetAmount: number;
+  currentAmount: number;
+  targetDate: string;
+  description?: string;
+}
+
+// Utility function to get relative time (keeping for backward compatibility)
+const getRelativeTime = (dateString: string): string => {
+  return formatRelativeTime(dateString);
+};
+
+// Utility function to get category icon
+const getCategoryIcon = (iconName: string | null) => {
+  if (!iconName) return ShoppingCart;
+  
+  const iconMap: { [key: string]: React.ComponentType<{ className?: string }> } = {
+    'home': HomeIcon,
+    'utensils': Utensils,
+    'car': Car,
+    'heart': Heart,
+    'book-open': BookOpen,
+    'gamepad-2': Gamepad2,
+    'shopping-cart': ShoppingCart,
+    'gift': Gift,
+    'wallet': Wallet,
+    'credit-card': CreditCard,
+    'trending-up': TrendingUp,
+    'trending-down': TrendingDown,
+    'bar-chart-3': BarChart3,
+    'pie-chart': PieChart,
+    'line-chart': LineChart,
+  };
+  
+  return iconMap[iconName] || ShoppingCart;
+};
+
 export default function Home() {
   const { data: session, status } = useSession();
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch dashboard data
+  const fetchDashboardData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const response = await fetch('/api/dashboard');
+      if (!response.ok) {
+        throw new Error('Erro ao carregar dados do dashboard');
+      }
+      
+      const data = await response.json();
+      setDashboardData(data);
+    } catch (err) {
+      console.error('Erro ao buscar dados do dashboard:', err);
+      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch goals
+  const fetchGoals = async () => {
+    try {
+      const response = await fetch('/api/goals');
+      if (response.ok) {
+        const data = await response.json();
+        setGoals(data);
+      }
+    } catch (err) {
+      console.error('Erro ao buscar metas:', err);
+    }
+  };
+
+  // Load data when component mounts
+  useEffect(() => {
+    if (session) {
+      fetchDashboardData();
+      fetchGoals();
+    }
+  }, [session]);
+
+  // Refresh data after adding expense
+  const handleExpenseAdded = () => {
+    fetchDashboardData();
+    fetchGoals();
+  };
 
   if (status === "loading") {
     return (
@@ -99,9 +312,10 @@ export default function Home() {
   }
 
   if (session) {
-    // Authenticated user - show enhanced dashboard
+    // Authenticated user - show organized dashboard
     return (
       <div className="min-h-screen bg-background">
+        {/* Header */}
         <motion.header 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -132,82 +346,436 @@ export default function Home() {
         </motion.header>
 
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="px-4 py-6 sm:px-0"
-          >
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Welcome Card */}
-              <motion.div 
-                whileHover={{ scale: 1.02 }}
-                className="lg:col-span-2 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-8 rounded-xl border border-border backdrop-blur-sm"
-              >
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h2 className="text-3xl font-bold text-foreground mb-2">
-                      Bem-vindo de volta! 👋
-                    </h2>
-                    <p className="text-muted-foreground">
-                      Vamos continuar cuidando das suas finanças
-                    </p>
-                  </div>
-                  <motion.div
-                    animate={{ rotate: [0, 10, -10, 0] }}
-                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-                  >
-                    <PiggyBank className="h-16 w-16 text-primary" />
-                  </motion.div>
+          <div className="px-4 sm:px-0 space-y-8">
+            
+            {/* Welcome Section */}
+            <motion.section 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-8 rounded-xl border border-border backdrop-blur-sm"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-3xl font-bold text-foreground mb-2">
+                    Bem-vindo de volta! 👋
+                  </h2>
+                  <p className="text-muted-foreground text-lg">
+                    Vamos continuar cuidando das suas finanças
+                  </p>
                 </div>
-                
-                <div className="space-y-4">
-                  <AddExpenseDialog />
-                  <motion.div 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5 }}
-                    className="flex gap-4"
-                  >
-                    <Button variant="outline" className="flex-1" onClick={() => window.location.href = '/admin'}>
-                      <BarChart3 className="h-4 w-4 mr-2" />
-                      Administração
-                    </Button>
-                    <Button variant="outline" className="flex-1">
-                      <Target className="h-4 w-4 mr-2" />
-                      Suas Metas
-                    </Button>
-                  </motion.div>
-                </div>
-              </motion.div>
+                <motion.div
+                  animate={{ rotate: [0, 10, -10, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                >
+                  <PiggyBank className="h-16 w-16 text-primary" />
+                </motion.div>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-4">
+                <AddExpenseDialog onSuccess={handleExpenseAdded} />
+                <Button variant="outline" className="flex-1 sm:flex-none" onClick={() => window.location.href = '/admin'}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Administração Completa
+                </Button>
+              </div>
+            </motion.section>
 
-              {/* Quick Stats */}
+            {/* Loading State */}
+            {isLoading && (
               <motion.div 
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-                className="space-y-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex items-center justify-center py-12"
               >
-                <div className="bg-card p-6 rounded-xl border border-border">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-muted-foreground">Saldo Total</span>
-                    <TrendingUp className="h-4 w-4 text-success" />
-                  </div>
-                  <div className="text-2xl font-bold text-foreground">R$ 12.450,80</div>
-                  <div className="text-sm text-success">+12.5% este mês</div>
-                </div>
-                
-                <div className="bg-card p-6 rounded-xl border border-border">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-muted-foreground">Gastos do Mês</span>
-                    <TrendingDown className="h-4 w-4 text-warning" />
-                  </div>
-                  <div className="text-2xl font-bold text-foreground">R$ 3.248,90</div>
-                  <div className="text-sm text-warning">Meta: R$ 4.000,00</div>
+                <div className="flex items-center space-x-2">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  <span className="text-muted-foreground">Carregando dados financeiros...</span>
                 </div>
               </motion.div>
-            </div>
-          </motion.div>
+            )}
+
+            {/* Error State */}
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="bg-destructive/10 border border-destructive/20 p-4 rounded-lg text-center"
+              >
+                <p className="text-destructive mb-2">Erro ao carregar dados</p>
+                <p className="text-sm text-muted-foreground mb-3">{error}</p>
+                <Button onClick={fetchDashboardData} variant="outline" size="sm">
+                  Tentar Novamente
+                </Button>
+              </motion.div>
+            )}
+
+            {/* Dashboard Content */}
+            {dashboardData && !isLoading && !error && (
+              <>
+                {/* Quick Stats Overview */}
+                <motion.section 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+                >
+                  <div className="bg-card p-6 rounded-xl border border-border hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-muted-foreground">Saldo Total</span>
+                      <TrendingUp className="h-4 w-4 text-success" />
+                    </div>
+                    <div className="text-2xl font-bold text-foreground">
+                      {formatCurrency(dashboardData.totalBalance)}
+                    </div>
+                    <div className="text-sm text-success">
+                      {formatPercentage(dashboardData.changes.income)}
+                    </div>
+                  </div>
+                  
+                  <div className="bg-card p-6 rounded-xl border border-border hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-muted-foreground">Gastos do Mês</span>
+                      <TrendingDown className="h-4 w-4 text-warning" />
+                    </div>
+                    <div className="text-2xl font-bold text-foreground">
+                      {formatCurrency(dashboardData.currentMonth.expenses)}
+                    </div>
+                    <div className="text-sm text-warning">
+                      {formatPercentage(dashboardData.changes.expenses)}
+                    </div>
+                  </div>
+
+                  <div className="bg-card p-6 rounded-xl border border-border hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-muted-foreground">Receitas do Mês</span>
+                      <TrendingUp className="h-4 w-4 text-success" />
+                    </div>
+                    <div className="text-2xl font-bold text-foreground">
+                      {formatCurrency(dashboardData.currentMonth.income)}
+                    </div>
+                    <div className="text-sm text-success">
+                      {formatPercentage(dashboardData.changes.income)}
+                    </div>
+                  </div>
+
+                  <div className="bg-card p-6 rounded-xl border border-border hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-muted-foreground">Economia</span>
+                      <PiggyBank className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="text-2xl font-bold text-foreground">
+                      {formatCurrency(dashboardData.currentMonth.savings)}
+                    </div>
+                    <div className="text-sm text-primary">
+                      {formatPercentage(dashboardData.currentMonth.savingsPercentage, false, 1)} da receita
+                    </div>
+                  </div>
+                </motion.section>
+
+                {/* Quick Actions */}
+                <motion.section 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <h3 className="text-xl font-semibold text-foreground mb-4 flex items-center">
+                    <Zap className="h-5 w-5 mr-2 text-primary" />
+                    Ações Rápidas
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {quickActions.map((action, index) => (
+                      <motion.div
+                        key={action.title}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 * index }}
+                        whileHover={{ scale: 1.02 }}
+                        className="bg-card p-6 rounded-xl border border-border hover:shadow-md transition-all cursor-pointer"
+                        onClick={() => {
+                          if (action.action === 'add-expense') {
+                            // Trigger add expense dialog
+                            const addExpenseButton = document.querySelector('[data-add-expense]') as HTMLElement;
+                            if (addExpenseButton) addExpenseButton.click();
+                          } else if (action.action === 'reports') {
+                            window.location.href = '/admin?tab=transactions';
+                          } else if (action.action === 'accounts') {
+                            window.location.href = '/admin?tab=accounts';
+                          } else if (action.action === 'goals') {
+                            window.location.href = '/admin?tab=goals';
+                          }
+                        }}
+                      >
+                        <div className={`w-12 h-12 ${action.bgColor} rounded-lg flex items-center justify-center mb-4`}>
+                          <action.icon className={`h-6 w-6 ${action.color}`} />
+                        </div>
+                        <h4 className="font-semibold text-foreground mb-2">{action.title}</h4>
+                        <p className="text-sm text-muted-foreground">{action.description}</p>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.section>
+
+                {/* Recent Activity & Categories */}
+                <motion.section 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+                >
+                  {/* Recent Transactions */}
+                  <div className="bg-card p-6 rounded-xl border border-border">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-xl font-semibold text-foreground flex items-center">
+                        <FileText className="h-5 w-5 mr-2 text-primary" />
+                        Transações Recentes
+                      </h3>
+                      <Button variant="outline" size="sm" onClick={() => window.location.href = '/admin?tab=transactions'}>
+                        Ver Todas
+                        <ChevronRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {dashboardData.recentTransactions.length > 0 ? (
+                        dashboardData.recentTransactions.map((transaction) => {
+                          const CategoryIcon = getCategoryIcon(transaction.category.icon);
+                          const isExpense = transaction.type === 'EXPENSE';
+                          
+                          return (
+                            <div key={transaction.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                              <div className="flex items-center space-x-3">
+                                <div className={`w-8 h-8 ${isExpense ? 'bg-red-100 dark:bg-red-900' : 'bg-green-100 dark:bg-green-900'} rounded-full flex items-center justify-center`}>
+                                  <CategoryIcon className={`h-4 w-4 ${isExpense ? 'text-red-600' : 'text-green-600'}`} />
+                                </div>
+                                <div>
+                                  <p className="font-medium text-foreground">{transaction.description}</p>
+                                  <p className="text-sm text-muted-foreground">{transaction.category.name}</p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className={`font-semibold ${isExpense ? 'text-red-600' : 'text-green-600'}`}>
+                                  {isExpense ? '-' : '+'}{formatCurrency(transaction.amount)}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {getRelativeTime(transaction.date)}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                          <p>Nenhuma transação encontrada</p>
+                          <p className="text-sm">Adicione sua primeira transação para começar</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Expense Categories Overview */}
+                  <div className="bg-card p-6 rounded-xl border border-border">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-xl font-semibold text-foreground flex items-center">
+                        <PieChart className="h-5 w-5 mr-2 text-primary" />
+                        Categorias de Gastos
+                      </h3>
+                      <Button variant="outline" size="sm" onClick={() => window.location.href = '/admin?tab=categories'}>
+                        Gerenciar
+                        <ChevronRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      {dashboardData.categoryStats.length > 0 ? (
+                        dashboardData.categoryStats.slice(0, 8).map((category, index) => {
+                          const CategoryIcon = getCategoryIcon(category.icon);
+                          const bgColor = category.color ? `bg-${category.color.split('-')[1]}-100 dark:bg-${category.color.split('-')[1]}-900` : 'bg-gray-100 dark:bg-gray-900';
+                          const textColor = category.color || 'text-gray-600';
+                          
+                          return (
+                            <motion.div
+                              key={category.id}
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: 0.05 * index }}
+                              className="flex items-center space-x-3 p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors cursor-pointer"
+                              onClick={() => window.location.href = '/admin?tab=transactions'}
+                            >
+                              <div className={`w-8 h-8 ${bgColor} rounded-full flex items-center justify-center`}>
+                                <CategoryIcon className={`h-4 w-4 ${textColor}`} />
+                              </div>
+                              <div>
+                                <p className="font-medium text-foreground text-sm">{category.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {formatCurrency(category.expenses)}
+                                </p>
+                              </div>
+                            </motion.div>
+                          );
+                        })
+                      ) : (
+                        fallbackCategories.map((category, index) => (
+                          <motion.div
+                            key={category.name}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.05 * index }}
+                            className="flex items-center space-x-3 p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors cursor-pointer"
+                            onClick={() => window.location.href = '/admin?tab=categories'}
+                          >
+                            <div className={`w-8 h-8 ${category.bgColor} rounded-full flex items-center justify-center`}>
+                              <category.icon className={`h-4 w-4 ${category.color}`} />
+                            </div>
+                            <div>
+                              <p className="font-medium text-foreground text-sm">{category.name}</p>
+                              <p className="text-xs text-muted-foreground">R$ 0,00</p>
+                            </div>
+                          </motion.div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </motion.section>
+
+                {/* Financial Goals & Insights */}
+                <motion.section 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+                >
+                  {/* Financial Goals */}
+                  <div className="bg-card p-6 rounded-xl border border-border">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-xl font-semibold text-foreground flex items-center">
+                        <Target className="h-5 w-5 mr-2 text-primary" />
+                        Suas Metas Financeiras
+                      </h3>
+                      <Button variant="outline" size="sm" onClick={() => window.location.href = '/admin?tab=goals'}>
+                        Gerenciar Metas
+                        <ChevronRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {goals.length > 0 ? (
+                        goals.slice(0, 2).map((goal) => {
+                          const progress = (goal.currentAmount / goal.targetAmount) * 100;
+                          const progressColor = progress >= 75 ? 'from-primary/10 to-primary/5' : 
+                                               progress >= 50 ? 'from-accent/10 to-accent/5' : 
+                                               'from-yellow-50 to-yellow-100 dark:from-yellow-950 dark:to-yellow-900';
+                          const borderColor = progress >= 75 ? 'border-primary/20' : 
+                                            progress >= 50 ? 'border-accent/20' : 
+                                            'border-yellow-200 dark:border-yellow-800';
+                          const textColor = progress >= 75 ? 'text-primary' : 
+                                          progress >= 50 ? 'text-accent' : 
+                                          'text-yellow-800 dark:text-yellow-200';
+                          
+                          return (
+                            <div key={goal.id} className={`p-4 bg-gradient-to-r ${progressColor} rounded-lg border ${borderColor}`}>
+                              <div className="flex items-center justify-between mb-2">
+                                <h4 className="font-semibold text-foreground">{goal.name}</h4>
+                                <span className={`text-sm font-medium ${textColor}`}>{formatPercentage(progress, false, 0)}</span>
+                              </div>
+                              <div className="w-full bg-muted rounded-full h-2 mb-2">
+                                <div className={`h-2 rounded-full ${progress >= 75 ? 'bg-primary' : progress >= 50 ? 'bg-accent' : 'bg-yellow-500'}`} 
+                                     style={{ width: `${Math.min(progress, 100)}%` }}></div>
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                {formatCurrency(goal.currentAmount)} de {formatCurrency(goal.targetAmount)} economizados
+                              </p>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                          <p>Nenhuma meta definida</p>
+                          <p className="text-sm">Crie suas primeiras metas financeiras</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Financial Insights */}
+                  <div className="bg-card p-6 rounded-xl border border-border">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-xl font-semibold text-foreground flex items-center">
+                        <LineChart className="h-5 w-5 mr-2 text-primary" />
+                        Insights Financeiros
+                      </h3>
+                      <Button variant="outline" size="sm" onClick={() => window.location.href = '/admin'}>
+                        Ver Relatórios
+                        <ChevronRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {dashboardData.currentMonth.savings > 0 && (
+                        <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 rounded-lg border border-green-200 dark:border-green-800">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <TrendingUp className="h-4 w-4 text-green-600" />
+                            <span className="text-sm font-medium text-green-800 dark:text-green-200">Boa Notícia!</span>
+                          </div>
+                          <p className="text-sm text-green-700 dark:text-green-300">
+                            Suas economias representam {formatPercentage(dashboardData.currentMonth.savingsPercentage, false, 1)} da receita este mês. Continue assim!
+                          </p>
+                        </div>
+                      )}
+
+                      {dashboardData.changes.expenses > 20 && (
+                        <div className="p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-950 dark:to-yellow-900 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <Target className="h-4 w-4 text-yellow-600" />
+                            <span className="text-sm font-medium text-yellow-800 dark:text-yellow-200">Atenção</span>
+                          </div>
+                          <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                            Seus gastos aumentaram {formatPercentage(Math.abs(dashboardData.changes.expenses), false, 1)} em relação ao mês anterior. Considere revisar.
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Calendar className="h-4 w-4 text-blue-600" />
+                          <span className="text-sm font-medium text-blue-800 dark:text-blue-200">Resumo do Mês</span>
+                        </div>
+                        <p className="text-sm text-blue-700 dark:text-blue-300">
+                          {dashboardData.currentMonth.income > 0 ? 
+                            `Receitas: ${formatCurrency(dashboardData.currentMonth.income)} | Gastos: ${formatCurrency(dashboardData.currentMonth.expenses)}` :
+                            'Nenhuma transação registrada este mês'
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.section>
+
+                {/* Quick Navigation to Admin */}
+                <motion.section 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                  className="bg-gradient-to-r from-primary/5 to-accent/5 p-8 rounded-xl border border-border text-center"
+                >
+                  <h3 className="text-2xl font-bold text-foreground mb-4">
+                    Precisa de mais controle?
+                  </h3>
+                  <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+                    Acesse o painel completo de administração para gerenciar todas as suas finanças, 
+                    criar relatórios detalhados e configurar suas preferências.
+                  </p>
+                  <Button size="lg" onClick={() => window.location.href = '/admin'}>
+                    <Settings className="h-5 w-5 mr-2" />
+                    Acessar Administração
+                    <ChevronRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </motion.section>
+              </>
+            )}
+          </div>
         </main>
       </div>
     );

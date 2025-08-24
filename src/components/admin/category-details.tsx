@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { formatDateTime } from "@/lib/format";
 import { 
   Tag, 
   FileText, 
@@ -156,15 +157,13 @@ export function CategoryDetails({ category }: CategoryDetailsProps) {
             <div>
               <p className="text-sm text-muted-foreground">Criada em</p>
               <p className="text-sm">
-                {new Date(category.createdAt).toLocaleDateString("pt-BR")} às{" "}
-                {new Date(category.createdAt).toLocaleTimeString("pt-BR")}
+                {formatDateTime(category.createdAt)}
               </p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Última atualização</p>
               <p className="text-sm">
-                {new Date(category.updatedAt).toLocaleDateString("pt-BR")} às{" "}
-                {new Date(category.updatedAt).toLocaleTimeString("pt-BR")}
+                {formatDateTime(category.updatedAt)}
               </p>
             </div>
           </CardContent>

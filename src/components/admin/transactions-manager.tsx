@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { TransactionForm } from "@/components/admin/transaction-form";
 import { TransactionDetails } from "@/components/admin/transaction-details";
+import { formatTransactionAmount, formatDate } from "@/lib/format";
 
 interface Transaction {
   id: string;
@@ -223,7 +224,7 @@ export function TransactionsManager() {
                               : "text-green-600 dark:text-green-400"
                           }`}
                         >
-                          {transaction.type === "EXPENSE" ? "-" : "+"}R$ {Number(transaction.amount).toFixed(2)}
+                          {formatTransactionAmount(transaction.amount, transaction.type)}
                         </span>
                       </TableCell>
                       <TableCell>
@@ -234,7 +235,7 @@ export function TransactionsManager() {
                       <TableCell>{transaction.account.name}</TableCell>
                       <TableCell>{transaction.category.name}</TableCell>
                       <TableCell>
-                        {new Date(transaction.date).toLocaleDateString("pt-BR")}
+                        {formatDate(transaction.date)}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end space-x-2">

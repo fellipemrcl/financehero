@@ -123,6 +123,7 @@ model Goal {
   currentAmount Decimal    @default(0)
   targetDate    DateTime
   status        GoalStatus @default(ACTIVE)
+  isActive      Boolean    @default(true)
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 

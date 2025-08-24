@@ -41,6 +41,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
+import { formatCurrency as formatCurrencyUtil } from "@/lib/format"
 
 const formSchema = z.object({
   amount: z.string().min(1, "Valor é obrigatório").refine((val) => {
@@ -184,11 +185,8 @@ export function AddExpenseDialog({ onSuccess, trigger }: AddExpenseDialogProps) 
     // Converte centavos para reais
     const reais = numericValue / 100
     
-    // Formata para moeda brasileira
-    return reais.toLocaleString('pt-BR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })
+    // Formata para moeda brasileira usando a função utilitária
+    return formatCurrencyUtil(reais)
   }
 
   const handleOpenChange = (open: boolean) => {
@@ -380,10 +378,7 @@ export function AddExpenseDialog({ onSuccess, trigger }: AddExpenseDialogProps) 
                             <div className="flex items-center justify-between w-full">
                               <span>{account.name}</span>
                               <span className="text-muted-foreground text-sm ml-2">
-                                R$ {account.balance.toLocaleString('pt-BR', {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2,
-                                })}
+                                                {formatCurrencyUtil(account.balance)}
                               </span>
                             </div>
                           </SelectItem>
