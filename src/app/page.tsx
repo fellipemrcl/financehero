@@ -2,6 +2,7 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { SignOutButton } from "@/components/auth/signout-button";
+import { AddExpenseDialog } from "@/components/transactions/add-expense-dialog";
 
 export default async function Home() {
   const session = await auth();
@@ -28,11 +29,17 @@ export default async function Home() {
 
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
-            <div className="border-2 border-dashed border-border rounded-lg h-96 flex items-center justify-center bg-card/50">
+            <div className="border-2 border-dashed border-border rounded-lg min-h-96 flex items-center justify-center bg-card/50">
               <div className="text-center">
                 <h2 className="text-2xl font-semibold text-card-foreground mb-4">
                   Bem-vindo ao Finance Hero!
                 </h2>
+                <p className="text-muted-foreground mb-6">
+                  Comece registrando seus gastos para ter controle total de suas finanças
+                </p>
+                <div className="space-y-4">
+                  <AddExpenseDialog />
+                </div>
               </div>
             </div>
           </div>

@@ -1,25 +1,21 @@
 import { PrismaClient } from '../src/generated/prisma'
-import { hash } from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
 async function main() {
   console.log('🌱 Iniciando seed do banco de dados...')
-
-  // Criar usuário de exemplo
-  const hashedPassword = await hash('123456', 12)
   
+  // Criar usuário de teste
   const user = await prisma.user.upsert({
     where: { email: 'demo@financehero.com' },
     update: {},
     create: {
       email: 'demo@financehero.com',
       name: 'Usuário Demo',
-      passwordHash: hashedPassword,
     },
   })
 
-  console.log('👤 Usuário criado:', user.email)
+  console.log('👤 Usuário criado:', user.email, 'ID:', user.id)
 
   // Criar categorias padrão
   const incomeCategories = [
@@ -85,7 +81,7 @@ async function main() {
   ]
 
   for (const account of accounts) {
-    await prisma.account.upsert({
+    await prisma.financialAccount.upsert({
       where: { 
         id: `${user.id}-${account.name.toLowerCase().replace(/\s+/g, '-')}` 
       },
