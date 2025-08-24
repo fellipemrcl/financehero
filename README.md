@@ -1,24 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FinanceHero 💰
 
-## Getting Started
+Uma aplicação moderna de controle financeiro pessoal desenvolvida com Next.js e Prisma ORM.
 
-First, run the development server:
+## 🚀 Tecnologias
 
+- **Next.js 15** - Framework React
+- **TypeScript** - Linguagem de programação
+- **Prisma ORM** - Object-Relational Mapping
+- **PostgreSQL** - Banco de dados
+- **Tailwind CSS** - Framework CSS
+- **shadcn/ui** - Componentes UI
+- **React Hook Form** - Gerenciamento de formulários
+- **Zod** - Validação de schemas
+
+## 🛠️ Configuração do Projeto
+
+### Pré-requisitos
+- Node.js 18+
+- PostgreSQL
+- npm ou yarn
+
+### Instalação
+
+1. **Clone o repositório:**
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd financehero
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. **Instale as dependências:**
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. **Configure o banco de dados:**
+```bash
+# Copie o arquivo de exemplo das variáveis de ambiente
+cp .env.example .env
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Configure a DATABASE_URL no arquivo .env
+DATABASE_URL="postgresql://username:password@localhost:5432/financehero?schema=public"
+```
+
+4. **Configure o banco de dados com Prisma:**
+```bash
+# Gerar o Prisma Client
+npm run db:generate
+
+# Aplicar o schema ao banco de dados
+npm run db:push
+
+# Popular o banco com dados de exemplo (opcional)
+npm run db:seed
+```
+
+5. **Execute o servidor de desenvolvimento:**
+```bash
+npm run dev
+```
+
+Abra [http://localhost:3000](http://localhost:3000) no seu navegador.
+
+## 📊 Banco de Dados
+
+Este projeto usa **Prisma ORM** com PostgreSQL. O schema inclui:
+
+- **Users** - Usuários da aplicação
+- **Accounts** - Contas bancárias (corrente, poupança, cartão, etc.)
+- **Categories** - Categorias de receitas e despesas
+- **Transactions** - Transações financeiras
+- **Budgets** - Orçamentos por categoria
+- **Goals** - Metas financeiras
+
+### Comandos úteis do Prisma:
+
+```bash
+# Visualizar o banco de dados
+npm run db:studio
+
+# Criar migração
+npm run db:migrate
+
+# Gerar cliente
+npm run db:generate
+
+# Popular banco
+npm run db:seed
+```
+
+📚 **Documentação detalhada:** [docs/PRISMA.md](./docs/PRISMA.md)
 
 ## Learn More
 
