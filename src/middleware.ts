@@ -23,9 +23,9 @@ export default auth((req) => {
     return Response.redirect(signInUrl)
   }
   
-  // If authenticated and trying to access auth pages, redirect to dashboard
+  // If authenticated and trying to access auth pages, redirect to home
   if (req.auth && (pathname.startsWith("/auth/signin") || pathname.startsWith("/auth/signup"))) {
-    return Response.redirect(new URL("/dashboard", req.url))
+    return Response.redirect(new URL("/", req.url))
   }
 })
 
