@@ -37,6 +37,19 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  
+  /* Finance-specific colors */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-profit: var(--profit);
+  --color-profit-foreground: var(--profit-foreground);
+  --color-loss: var(--loss);
+  --color-loss-foreground: var(--loss-foreground);
+  --color-neutral: var(--neutral);
+  --color-neutral-foreground: var(--neutral-foreground);
+  
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -45,71 +58,126 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  
+  /* Base colors - Clean whites and sophisticated grays */
+  --background: oklch(0.99 0.002 106.42);
+  --foreground: oklch(0.09 0.01 106.42);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.09 0.01 106.42);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --popover-foreground: oklch(0.09 0.01 106.42);
+  
+  /* Primary - Professional Blue (Finance industry standard) */
+  --primary: oklch(0.47 0.13 250.21);
+  --primary-foreground: oklch(0.99 0.002 106.42);
+  
+  /* Secondary - Sophisticated Purple */
+  --secondary: oklch(0.94 0.015 280.18);
+  --secondary-foreground: oklch(0.47 0.13 250.21);
+  
+  /* Muted - Subtle gray tones */
+  --muted: oklch(0.96 0.008 106.42);
+  --muted-foreground: oklch(0.45 0.008 106.42);
+  
+  /* Accent - Vibrant Teal for highlights */
+  --accent: oklch(0.89 0.05 180.25);
+  --accent-foreground: oklch(0.25 0.08 180.25);
+  
+  /* States */
+  --destructive: oklch(0.55 0.22 27.33);
+  --border: oklch(0.89 0.005 106.42);
+  --input: oklch(0.94 0.008 106.42);
+  --ring: oklch(0.47 0.13 250.21);
+  
+  /* Finance-specific chart colors */
+  --chart-1: oklch(0.55 0.18 142.49); /* Success Green */
+  --chart-2: oklch(0.47 0.13 250.21); /* Primary Blue */
+  --chart-3: oklch(0.65 0.15 315.67); /* Purple */
+  --chart-4: oklch(0.62 0.25 27.33);  /* Warning Orange */
+  --chart-5: oklch(0.45 0.12 180.25); /* Teal */
+  
+  /* Sidebar */
+  --sidebar: oklch(0.97 0.005 106.42);
+  --sidebar-foreground: oklch(0.15 0.01 106.42);
+  --sidebar-primary: oklch(0.47 0.13 250.21);
+  --sidebar-primary-foreground: oklch(0.99 0.002 106.42);
+  --sidebar-accent: oklch(0.89 0.05 180.25);
+  --sidebar-accent-foreground: oklch(0.25 0.08 180.25);
+  --sidebar-border: oklch(0.89 0.005 106.42);
+  --sidebar-ring: oklch(0.47 0.13 250.21);
+  
+  /* Finance-specific colors */
+  --success: oklch(0.55 0.18 142.49);
+  --success-foreground: oklch(0.99 0.002 106.42);
+  --warning: oklch(0.72 0.15 85.87);
+  --warning-foreground: oklch(0.09 0.01 106.42);
+  --profit: oklch(0.55 0.18 142.49);
+  --profit-foreground: oklch(0.99 0.002 106.42);
+  --loss: oklch(0.55 0.22 27.33);
+  --loss-foreground: oklch(0.99 0.002 106.42);
+  --neutral: oklch(0.65 0.02 106.42);
+  --neutral-foreground: oklch(0.99 0.002 106.42);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Base colors - Dark sophisticated background */
+  --background: oklch(0.08 0.01 250.21);
+  --foreground: oklch(0.95 0.005 106.42);
+  --card: oklch(0.12 0.015 250.21);
+  --card-foreground: oklch(0.95 0.005 106.42);
+  --popover: oklch(0.12 0.015 250.21);
+  --popover-foreground: oklch(0.95 0.005 106.42);
+  
+  /* Primary - Brighter blue for dark theme */
+  --primary: oklch(0.62 0.18 250.21);
+  --primary-foreground: oklch(0.08 0.01 250.21);
+  
+  /* Secondary - Muted purple */
+  --secondary: oklch(0.18 0.02 280.18);
+  --secondary-foreground: oklch(0.85 0.02 280.18);
+  
+  /* Muted - Dark grays */
+  --muted: oklch(0.15 0.01 250.21);
+  --muted-foreground: oklch(0.65 0.005 106.42);
+  
+  /* Accent - Bright teal for dark theme */
+  --accent: oklch(0.25 0.08 180.25);
+  --accent-foreground: oklch(0.85 0.05 180.25);
+  
+  /* States */
+  --destructive: oklch(0.65 0.25 27.33);
+  --border: oklch(0.2 0.01 250.21);
+  --input: oklch(0.18 0.015 250.21);
+  --ring: oklch(0.62 0.18 250.21);
+  
+  /* Finance-specific chart colors for dark theme */
+  --chart-1: oklch(0.65 0.2 142.49);  /* Success Green - brighter */
+  --chart-2: oklch(0.62 0.18 250.21); /* Primary Blue - brighter */
+  --chart-3: oklch(0.72 0.18 315.67); /* Purple - brighter */
+  --chart-4: oklch(0.72 0.28 27.33);  /* Warning Orange - brighter */
+  --chart-5: oklch(0.55 0.15 180.25); /* Teal - brighter */
+  
+  /* Sidebar */
+  --sidebar: oklch(0.1 0.01 250.21);
+  --sidebar-foreground: oklch(0.9 0.005 106.42);
+  --sidebar-primary: oklch(0.62 0.18 250.21);
+  --sidebar-primary-foreground: oklch(0.08 0.01 250.21);
+  --sidebar-accent: oklch(0.25 0.08 180.25);
+  --sidebar-accent-foreground: oklch(0.85 0.05 180.25);
+  --sidebar-border: oklch(0.2 0.01 250.21);
+  --sidebar-ring: oklch(0.62 0.18 250.21);
+  
+  /* Finance-specific colors for dark theme */
+  --success: oklch(0.65 0.2 142.49);
+  --success-foreground: oklch(0.08 0.01 250.21);
+  --warning: oklch(0.78 0.18 85.87);
+  --warning-foreground: oklch(0.08 0.01 250.21);
+  --profit: oklch(0.65 0.2 142.49);
+  --profit-foreground: oklch(0.08 0.01 250.21);
+  --loss: oklch(0.65 0.25 27.33);
+  --loss-foreground: oklch(0.95 0.005 106.42);
+  --neutral: oklch(0.45 0.02 106.42);
+  --neutral-foreground: oklch(0.95 0.005 106.42);
 }
 
 @layer base {
