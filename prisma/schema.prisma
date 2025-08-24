@@ -12,24 +12,30 @@ datasource db {
 }
 
 model User {
-  id           String @id @default(cuid())
-  email        String @unique
-  name         String?
-  passwordHash String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  // Relacionamentos
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  
+  // Auth.js related fields
   accounts     Account[]
+  sessions     Session[]
+  
+  // App specific relationships
+  userAccounts FinancialAccount[]      @relation("UserAccounts")
   transactions Transaction[]
   categories   Category[]
   budgets      Budget[]
   goals        Goal[]
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@map("users")
 }
 
-model Account {
+model FinancialAccount {
   id          String      @id @default(cuid())
   name        String
   type        AccountType
@@ -40,7 +46,7 @@ model Account {
   updatedAt   DateTime    @updatedAt
 
   // Relacionamentos
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User          @relation("UserAccounts", fields: [userId], references: [id], onDelete: Cascade)
   userId       String
   transactions Transaction[]
 
@@ -80,7 +86,7 @@ model Transaction {
   // Relacionamentos
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     String
-  account    Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  account    FinancialAccount  @relation(fields: [accountId], references: [id], onDelete: Cascade)
   accountId  String
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   categoryId String
@@ -158,4 +164,50 @@ enum GoalStatus {
   COMPLETED
   PAUSED
   CANCELLED
+}
+
+// Auth.js required models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([provider, providerAccountId])
+  @@map("auth_accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
 }

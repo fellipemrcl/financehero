@@ -3,7 +3,7 @@ import { Prisma } from '@/generated/prisma'
 
 // Tipos úteis
 export type UserWithAccounts = Prisma.UserGetPayload<{
-  include: { accounts: true }
+  include: { userAccounts: true }
 }>
 
 export type TransactionWithDetails = Prisma.TransactionGetPayload<{
@@ -13,7 +13,7 @@ export type TransactionWithDetails = Prisma.TransactionGetPayload<{
   }
 }>
 
-export type AccountWithTransactions = Prisma.AccountGetPayload<{
+export type FinancialAccountWithTransactions = Prisma.FinancialAccountGetPayload<{
   include: { transactions: true }
 }>
 
@@ -24,7 +24,7 @@ export class DatabaseUtils {
     return await prisma.user.findUnique({
       where: { id },
       include: {
-        accounts: true,
+        userAccounts: true,
         categories: true,
         budgets: true,
         goals: true,
@@ -185,7 +185,7 @@ export class DatabaseUtils {
 
   // Contas
   static async getAccountsByUser(userId: string) {
-    return await prisma.account.findMany({
+    return await prisma.financialAccount.findMany({
       where: { userId, isActive: true },
       include: {
         _count: {
@@ -204,7 +204,7 @@ export class DatabaseUtils {
       },
     })
 
-    return await prisma.account.update({
+    return await prisma.financialAccount.update({
       where: { id: accountId },
       data: {
         balance: transactions._sum.amount || 0,
