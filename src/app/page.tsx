@@ -135,6 +135,14 @@ const quickActions = [
     action: "goals",
     color: "text-purple-500",
     bgColor: "bg-purple-50 dark:bg-purple-950"
+  },
+  {
+    title: "Assinaturas",
+    description: "Gerencie gastos recorrentes",
+    icon: CreditCard,
+    action: "subscriptions",
+    color: "text-orange-500",
+    bgColor: "bg-orange-50 dark:bg-orange-950"
   }
 ];
 
@@ -374,6 +382,10 @@ export default function Home() {
               
               <div className="flex flex-col sm:flex-row gap-4">
                 <AddExpenseDialog onSuccess={handleExpenseAdded} />
+                <Button variant="outline" className="flex-1 sm:flex-none" onClick={() => window.location.href = '/subscriptions'}>
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Assinaturas
+                </Button>
                 <Button variant="outline" className="flex-1 sm:flex-none" onClick={() => window.location.href = '/admin'}>
                   <Settings className="h-4 w-4 mr-2" />
                   Administração Completa
@@ -483,7 +495,7 @@ export default function Home() {
                     <Zap className="h-5 w-5 mr-2 text-primary" />
                     Ações Rápidas
                   </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                     {quickActions.map((action, index) => (
                       <motion.div
                         key={action.title}
@@ -503,6 +515,8 @@ export default function Home() {
                             window.location.href = '/admin?tab=accounts';
                           } else if (action.action === 'goals') {
                             window.location.href = '/admin?tab=goals';
+                          } else if (action.action === 'subscriptions') {
+                            window.location.href = '/subscriptions';
                           }
                         }}
                       >

@@ -27,7 +27,8 @@ model User {
   transactions Transaction[]
   categories   Category[]
   budgets      Budget[]
-  goals        Goal[]
+  goals         Goal[]
+  subscriptions Subscription[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -65,10 +66,11 @@ model Category {
   updatedAt   DateTime    @updatedAt
 
   // Relacionamentos
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId       String
-  transactions Transaction[]
-  budgets      Budget[]
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  transactions  Transaction[]
+  budgets       Budget[]
+  subscriptions Subscription[]
 
   @@unique([name, userId])
   @@map("categories")
@@ -134,6 +136,27 @@ model Goal {
   @@map("goals")
 }
 
+model Subscription {
+  id              String             @id @default(cuid())
+  name            String
+  description     String?
+  amount          Decimal
+  currency        String             @default("BRL")
+  frequency       SubscriptionFrequency
+  nextBillingDate DateTime
+  isActive        Boolean            @default(true)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  // Relacionamentos
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId String
+
+  @@map("subscriptions")
+}
+
 enum AccountType {
   CHECKING
   SAVINGS
@@ -165,6 +188,13 @@ enum GoalStatus {
   COMPLETED
   PAUSED
   CANCELLED
+}
+
+enum SubscriptionFrequency {
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
 }
 
 // Auth.js required models
